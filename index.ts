@@ -115,38 +115,7 @@ class Student extends Staff{
     
   }
 }
-class Professor extends Staff {
-  askSickLeave(destination: Department): boolean {
-    return false;
-  }
-  sendRequest(department: Department): boolean {
-    return true;
-  }
-  add_postgraduate_student(student: PostgraduateStudent): void {
 
-  }
-
-  constructor(
-    id,
-    fullName,
-    address,
-    phoneNumber,
-    email,
-    position,
-    rank,
-    salary
-  ) {
-    super(id,
-      fullName,
-      address,
-      phoneNumber,
-      email,
-      position,
-      rank,
-      salary);
-    
-  }
-}
 
 class Department {
   title:string;
@@ -159,13 +128,12 @@ class Department {
   }
 }
 
-class Course {
-  seminars:number[];
-  title: string
-  constructor(title: string){
-    this.seminars = [];
-    this.title = title;
-  }
+class Group{
+  id:number;
+  title:string;
+  student_list:[];
+  department_id:number;
+
 }
 class Seminar {
   id:number;
@@ -189,7 +157,8 @@ class Enroll{
     this.studentCourses = {};
     this.courseStudents = {};
   }
-  enroll(student: Student, course: Course):void{
+  enroll(student: Student, course: Course | null):void{
+    if(course == null) return;
     let keys = Object.keys(this.studentCourses);
     if(keys.includes(student.personalInfo.id.toString())){
       console.log("Currently enroll this course", this.studentCourses);
@@ -200,7 +169,8 @@ class Enroll{
       //console.log("Welcome new student to this course", this.studentCourses, this.courseStudents)
     }
   }
-  unenroll(student: Student, course: Course):void{
+  unenroll(student: Student, course: Course | null):void{
+    if(course == null) return;
     let keys = Object.keys(this.studentCourses);
     if(!keys.includes(student.personalInfo.id.toString())){
       console.log("There is no such student in this course", this.studentCourses);
@@ -247,12 +217,203 @@ const stud = new Student(
   "rank",
   400)
 
+
+
+
+
+//Course factory
+
+  class Course {
+    seminars:number[];
+    title: string
+    constructor(title: string){
+      this.seminars = [];
+      this.title = title;
+    }
+  }
+  
+  class MathCourse extends Course {
+    feature: string;
+    constructor(title: string){
+      super(title);
+      this.feature = "Can teach you how to count cos(3301) without a calculator";
+    }
+  }
+  
+  class ProgrammingCourse extends Course {
+    feature: string;
+    constructor(title: string){
+      super(title);
+      this.feature = "Also can develope calculator for math course btw...";
+    }
+  }
+  
+  class AlgorithmsCourse extends Course {
+    feature: string;
+    constructor(title: string){
+      super(title);
+      this.feature = "Can teach you how to optimize your calculator";
+    }
+  }
+  
+  class CourseFactory {
+    create(type:string){
+      if(type === "Math"){
+        return new MathCourse("Math");
+      }
+      if(type === "Programming"){
+        return new ProgrammingCourse("Programming");
+      }
+      if(type === "Algorithms"){
+        return new AlgorithmsCourse("Algorithms");
+      }
+      return null;
+    }
+  }
+
+// Professor factory
+
+
+abstract class Professor extends Staff {
+  askSickLeave(destination: Department): boolean {
+    return false;
+  }
+  sendRequest(department: Department): boolean {
+    return true;
+  }
+  add_postgraduate_student(student: PostgraduateStudent): void {
+
+  }
+  abstract createCourse(title:string);
+  
+  fill_course(group:Group,...args):void{
+    console.log("course_filled");
+  }
+  constructor(
+    id,
+    fullName,
+    address,
+    phoneNumber,
+    email,
+    position,
+    rank,
+    salary
+  ) {
+    super(id,
+      fullName,
+      address,
+      phoneNumber,
+      email,
+      position,
+      rank,
+      salary);
+    
+  }
+}
+
+class MathProffesor extends Professor {
+  feature: string;
+  createCourse(): MathCourse | null {
+    const factory = new CourseFactory();
+    return factory.create("Math");
+  }
+  constructor(id,
+    fullName,
+    address,
+    phoneNumber,
+    email
+    ){
+    super(id,
+      fullName,
+      address,
+      phoneNumber,
+      email,
+      "Math Professor",
+      "Professor",
+      "4000");
+  }
+}
+
+class ProgrammingProffesor extends Professor {
+  feature: string;
+  createCourse(): ProgrammingCourse | null {
+    const factory = new CourseFactory();
+    return factory.create("Programming");
+  }
+  constructor(id,
+    fullName,
+    address,
+    phoneNumber,
+    email
+    ){
+    super(id,
+      fullName,
+      address,
+      phoneNumber,
+      email,
+      "Programming Professor",
+      "Professor",
+      "5000");
+  }
+}
+
+class AlgorithmsProffesor extends Professor {
+  feature: string;
+  createCourse(): AlgorithmsCourse | null {
+    const factory = new CourseFactory();
+    return factory.create("Algorithms");
+  }
+  constructor(id,
+    fullName,
+    address,
+    phoneNumber,
+    email
+    ){
+    super(id,
+      fullName,
+      address,
+      phoneNumber,
+      email,
+      "Algorithms Professor",
+      "Professor",
+      "4500");
+  }
+}
+
+class ProfessorsFactory {
+  create(type: string, id: number, name: string, address: string, number: string, email: string){
+    if(type === "Math"){
+      return new MathProffesor(id, name, address, number, email);
+    }
+    if(type === "Programming"){
+      return new ProgrammingProffesor(id, name, address, number, email);
+    }
+    if(type === "Algorithms"){
+      return new AlgorithmsProffesor(id, name, address, number, email);
+    }
+    return null;
+  }
+}
+
+
+
 const enroll = new Enroll();
-const course = new Course("Patterns");
-enroll.enroll(stud, course);
-console.log(enroll);
-enroll.enroll(stud, course);
-enroll.enroll(stud1, course);
-enroll.unenroll(stud, course);
-console.log(enroll);
- 
+const factoryCourse = new CourseFactory();
+const mathCourse = factoryCourse.create("Math");
+const mathProgramming = factoryCourse.create("Programming");
+const mathAlgorithms = factoryCourse.create("Algorithms");
+// console.log(mathCourse)
+// console.log(mathProgramming)
+// enroll.enroll(stud, mathCourse);
+// console.log(enroll);
+// enroll.enroll(stud, mathCourse);
+// enroll.enroll(stud1, mathProgramming);
+// enroll.unenroll(stud, mathCourse);
+// console.log(enroll);
+// return new MathProffesor(4, "Vitaliy Sin", "doroshenka", "0971111111", "vitsin@gmail.com");
+
+const profFact = new ProfessorsFactory();
+const mathProf = profFact.create("Math", 4, "Vitaliy Sin", "doroshenka", "0971111111", "vitsin@gmail.com");
+// const mathProf = new MathProffesor(4, "Vitaliy Sin", "doroshenka", "0971111111", "vitsin@gmail.com");
+const newCourse = mathProf?.createCourse();
+console.log(mathProf)
